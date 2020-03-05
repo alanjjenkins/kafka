@@ -833,7 +833,8 @@ project(':core') {
     // ZooKeeperMain depends on commons-cli but declares the dependency as `provided`
     implementation libs.commonsCli
 
-    compileOnly libs.log4j
+    compileOnly libs.log4j2Api
+    compileOnly libs.log4j2Core
 
     testImplementation project(':clients').sourceSets.test.output
     testImplementation project(':metadata').sourceSets.test.output
@@ -856,7 +857,10 @@ project(':core') {
     testImplementation libs.apachedsMavibotPartition
     testImplementation libs.apachedsJdbmPartition
     testImplementation libs.junitJupiter
-    testImplementation libs.slf4jlog4j
+    testImplementation libs.log4j2Api
+    testImplementation libs.log4j2Core
+    testImplementation libs.log4j2CoreTest
+    testImplementation libs.slf4jlog4j2
     testImplementation(libs.jfreechart) {
       exclude group: 'junit', module: 'junit'
     }
@@ -886,8 +890,8 @@ project(':core') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -1192,7 +1196,9 @@ project(':clients') {
     testImplementation libs.junitJupiter
     testImplementation libs.mockitoCore
 
-    testRuntimeOnly libs.slf4jlog4j
+    testImplementation libs.hamcrest
+
+    testRuntimeOnly libs.slf4jlog4j2
     testRuntimeOnly libs.jacksonDatabind
     testRuntimeOnly libs.jacksonJDK8Datatypes
     testImplementation libs.jacksonJaxrsJsonProvider
@@ -1310,7 +1316,7 @@ project(':raft') {
     testImplementation libs.mockitoCore
     testImplementation libs.jqwik
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   task createVersionFile(dependsOn: determineCommitId) {
@@ -1623,7 +1629,6 @@ project(':trogdor') {
     implementation libs.jacksonDatabind
     implementation libs.jacksonJDK8Datatypes
     implementation libs.slf4jApi
-    implementation libs.log4j
 
     implementation libs.jacksonJaxrsJsonProvider
     implementation libs.jerseyContainerServlet
@@ -1639,7 +1644,7 @@ project(':trogdor') {
     testImplementation project(':clients').sourceSets.test.output
     testImplementation libs.mockitoInline // supports mocking static methods, final classes, etc.
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   javadoc {
@@ -1648,8 +1653,8 @@ project(':trogdor') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -1725,9 +1730,11 @@ project(':streams') {
     testImplementation project(':clients').sourceSets.test.output
     testImplementation project(':core')
     testImplementation project(':core').sourceSets.test.output
-    testImplementation libs.log4j
     testImplementation libs.junitJupiterApi
     testImplementation libs.junitVintageEngine
+    testImplementation libs.log4j2Api
+    testImplementation libs.log4j2Core
+    testImplementation libs.log4j2CoreTest
     testImplementation libs.easymock
     testImplementation libs.powermockJunit4
     testImplementation libs.powermockEasymock
@@ -1736,7 +1743,7 @@ project(':streams') {
     testImplementation libs.mockitoInline // supports mocking static methods, final classes, etc.
 
     testRuntimeOnly project(':streams:test-utils')
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   task processMessages(type:JavaExec) {
@@ -1857,7 +1864,7 @@ project(':streams:streams-scala') {
     testImplementation libs.junitJupiter
     testImplementation libs.easymock
     testImplementation libs.hamcrest
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   javadoc {
@@ -1893,7 +1900,7 @@ project(':streams:test-utils') {
     testImplementation libs.easymock
     testImplementation libs.hamcrest
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   javadoc {
@@ -1926,7 +1933,7 @@ project(':streams:examples') {
 
     implementation project(':streams')
 
-    implementation libs.slf4jlog4j
+    implementation libs.slf4jlog4j2
 
     testImplementation project(':streams:test-utils')
     testImplementation project(':clients').sourceSets.test.output // for org.apache.kafka.test.IntegrationTest
@@ -2237,7 +2244,7 @@ project(':connect:api') {
     implementation libs.jaxrsApi
 
     testImplementation libs.junitJupiter
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testImplementation project(':clients').sourceSets.test.output
   }
 
@@ -2247,8 +2254,8 @@ project(':connect:api') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2274,7 +2281,7 @@ project(':connect:transforms') {
     testImplementation libs.easymock
     testImplementation libs.junitJupiter
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testImplementation project(':clients').sourceSets.test.output
   }
 
@@ -2284,8 +2291,8 @@ project(':connect:transforms') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2314,7 +2321,7 @@ project(':connect:json') {
     testImplementation libs.easymock
     testImplementation libs.junitJupiter
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testImplementation project(':clients').sourceSets.test.output
   }
 
@@ -2324,8 +2331,8 @@ project(':connect:json') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2353,8 +2360,8 @@ project(':connect:runtime') {
 
     implementation project(':tools')
 
+    implementation libs.log4j2Core
     implementation libs.slf4jApi
-    implementation libs.log4j
     implementation libs.jacksonAnnotations
     implementation libs.jacksonJaxrsJsonProvider
     implementation libs.jerseyContainerServlet
@@ -2381,7 +2388,7 @@ project(':connect:runtime') {
     testImplementation libs.mockitoCore
     testImplementation libs.httpclient
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   javadoc {
@@ -2390,8 +2397,8 @@ project(':connect:runtime') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2459,7 +2466,7 @@ project(':connect:file') {
     testImplementation libs.easymock
     testImplementation libs.junitJupiter
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testImplementation project(':clients').sourceSets.test.output
   }
 
@@ -2469,8 +2476,8 @@ project(':connect:file') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2498,7 +2505,7 @@ project(':connect:basic-auth-extension') {
     testImplementation libs.junitJupiter
     testImplementation project(':clients').sourceSets.test.output
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testRuntimeOnly libs.jerseyContainerServlet
   }
 
@@ -2508,8 +2515,8 @@ project(':connect:basic-auth-extension') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2545,7 +2552,7 @@ project(':connect:mirror') {
     testImplementation project(':core').sourceSets.test.output
 
     testRuntimeOnly project(':connect:runtime')
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
     testRuntimeOnly libs.bcpkix
   }
 
@@ -2555,8 +2562,8 @@ project(':connect:mirror') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')
@@ -2581,7 +2588,7 @@ project(':connect:mirror-client') {
     testImplementation libs.junitJupiter
     testImplementation project(':clients').sourceSets.test.output
 
-    testRuntimeOnly libs.slf4jlog4j
+    testRuntimeOnly libs.slf4jlog4j2
   }
 
   javadoc {
@@ -2590,8 +2597,8 @@ project(':connect:mirror-client') {
 
   tasks.create(name: "copyDependantLibs", type: Copy) {
     from (configurations.testRuntimeClasspath) {
-      include('slf4j-log4j12*')
-      include('log4j*jar')
+      include('log4j-slf4j-impl*')
+      include('log4j-[api|core]*jar')
     }
     from (configurations.runtimeClasspath) {
       exclude('kafka-clients*')

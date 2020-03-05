@@ -32,8 +32,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.ProcessorStateException;
 import org.apache.kafka.streams.processor.TaskId;
 import org.apache.kafka.streams.processor.internals.StateDirectory.TaskDirectory;
-import org.apache.kafka.streams.processor.internals.testutil.LogCaptureAppender;
 import org.apache.kafka.streams.state.internals.OffsetCheckpoint;
+import org.apache.kafka.test.LogCaptureContext;
 import org.apache.kafka.test.TestUtils;
 
 import org.junit.After;
@@ -340,14 +340,16 @@ public class StateDirectoryTest {
         assertEquals(1, directory.listAllTaskDirectories().size());
         assertEquals(1, directory.listNonEmptyTaskDirectories().size());
 
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(
+                this.getClass().getName() + "#shouldCleanupObsoleteStateDirectoriesOnlyOnce.0")) {
             time.sleep(5000);
+            logCaptureContext.setLatch(1);
             directory.cleanRemovedTasks(0);
             assertFalse(dir.exists());
             assertEquals(0, directory.listAllTaskDirectories().size());
             assertEquals(0, directory.listNonEmptyTaskDirectories().size());
             assertThat(
-                appender.getMessages(),
+                logCaptureContext.getMessages(),
                 hasItem(containsString("Deleting obsolete state directory"))
             );
         }
@@ -489,11 +491,12 @@ public class StateDirectoryTest {
 
     @Test
     public void shouldNotCreateBaseDirectory() throws IOException {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext =
+                 LogCaptureContext.create(this.getClass().getName() + "#shouldNotCreateBaseDirectory")) {
             initializeStateDirectory(false, false);
             assertThat(stateDir.exists(), is(false));
             assertThat(appDir.exists(), is(false));
-            assertThat(appender.getMessages(),
+            assertThat(logCaptureContext.getMessages(),
                 not(hasItem(containsString("Error changing permissions for the state or base directory"))));
         }
     }
@@ -569,12 +572,13 @@ public class StateDirectoryTest {
         final File dummyFile = new File(appDir, "dummy");
         assertTrue(dummyFile.createNewFile());
 
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext =
+                 LogCaptureContext.create(this.getClass().getName() + "#shouldNotDeleteAppDirWhenCleanUpIfNotEmpty")) {
             // call StateDirectory#clean
             directory.clean();
             assertThat(
-                appender.getMessages(),
-                hasItem(endsWith(String.format("Failed to delete state store directory of %s for it is not empty", appDir.getAbsolutePath())))
+                logCaptureContext.getMessages(),
+                hasItem(endsWith(String.format("Failed to delete state store directory of %s for it is not empty ", appDir.getAbsolutePath())))
             );
         }
     }
@@ -587,11 +591,14 @@ public class StateDirectoryTest {
         assertThat(testFile.mkdir(), is(true));
         assertThat(directory.directoryForTaskIsEmpty(taskId), is(false));
 
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(this.getClass().getName()
+                + "#shouldLogManualUserCallMessage")) {
+            logCaptureContext.setLatch(2);
+
             directory.clean();
             assertThat(
-                appender.getMessages(),
-                hasItem(endsWith("as user calling cleanup."))
+                logCaptureContext.getMessages(),
+                hasItem(endsWith("as user calling cleanup. "))
             );
         }
     }
@@ -604,17 +611,20 @@ public class StateDirectoryTest {
         assertThat(testFile.mkdir(), is(true));
         assertThat(directory.directoryForTaskIsEmpty(taskId), is(false));
 
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(this.getClass().getName()
+                + "#shouldLogStateDirCleanerMessage")) {
+            logCaptureContext.setLatch(2);
             final long cleanupDelayMs = 0;
             time.sleep(5000);
             directory.cleanRemovedTasks(cleanupDelayMs);
-            assertThat(appender.getMessages(), hasItem(endsWith("ms has elapsed (cleanup delay is " + cleanupDelayMs + "ms).")));
+            assertThat(logCaptureContext.getMessages(), hasItem(endsWith("ms has elapsed (cleanup delay is " +  cleanupDelayMs + "ms). ")));
         }
     }
 
     @Test
     public void shouldLogTempDirMessage() {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(this.getClass().getName()
+                + "#shouldLogTempDirMessage")) {
             new StateDirectory(
                 new StreamsConfig(
                     mkMap(
@@ -627,10 +637,10 @@ public class StateDirectoryTest {
                 false
             );
             assertThat(
-                appender.getMessages(),
-                hasItem("Using an OS temp directory in the state.dir property can cause failures with writing the" +
+                logCaptureContext.getMessages(),
+                hasItem("WARN Using an OS temp directory in the state.dir property can cause failures with writing the" +
                             " checkpoint file due to the fact that this directory can be cleared by the OS." +
-                            " Resolved state.dir: [" + System.getProperty("java.io.tmpdir") + "/kafka-streams]")
+                            " Resolved state.dir: [" + System.getProperty("java.io.tmpdir") + "/kafka-streams] ")
             );
         }
     }
@@ -724,7 +734,9 @@ public class StateDirectoryTest {
         assertThat(directory.listAllTaskDirectories().size(), is(1));
         assertThat(directory.listNonEmptyTaskDirectories().size(), is(1));
 
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister(StateDirectory.class)) {
+        try (final LogCaptureContext logCaptureContext =
+                 LogCaptureContext.create(this.getClass().getName() + "#shouldNotDeleteAppDirWhenCleanUpIfNotEmpty")) {
+            logCaptureContext.setLatch(1);
             time.sleep(5000);
             directory.cleanRemovedTasks(0);
             assertThat(taskDir.exists(), is(false));
@@ -732,7 +744,7 @@ public class StateDirectoryTest {
             assertThat(directory.listAllTaskDirectories().size(), is(0));
             assertThat(directory.listNonEmptyTaskDirectories().size(), is(0));
             assertThat(
-                appender.getMessages(),
+                logCaptureContext.getMessages(),
                 hasItem(containsString("Deleting obsolete state directory"))
             );
         }
