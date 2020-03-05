@@ -23,10 +23,10 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.StateStoreContext;
-import org.apache.kafka.streams.processor.internals.testutil.LogCaptureAppender;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.KeyValueStoreTestDriver;
+import org.apache.kafka.test.LogCaptureContext;
 import org.apache.kafka.test.InternalMockProcessorContext;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -579,72 +580,64 @@ public abstract class AbstractKeyValueStoreTest {
 
     @Test
     public void shouldNotThrowInvalidRangeExceptionWithNegativeFromKey() {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister()) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(
+                this.getClass().getName() + "#shouldNotThrowInvalidRangeExceptionWithNegativeFromKey")) {
+            logCaptureContext.setLatch(2);
+
             try (final KeyValueIterator<Integer, String> iterator = store.range(-1, 1)) {
                 assertFalse(iterator.hasNext());
             }
-
-            final List<String> messages = appender.getMessages();
-            assertThat(
-                messages,
-                hasItem("Returning empty iterator for fetch with invalid key range: from > to." +
-                    " This may be due to range arguments set in the wrong order, " +
-                    "or serdes that don't preserve ordering when lexicographically comparing the serialized bytes." +
-                    " Note that the built-in numerical serdes do not follow this for negative numbers")
+            
+            assertThat(logCaptureContext.getMessages(),
+                hasItem(containsString("WARN Returning empty iterator for fetch with invalid key range: from > to."))
             );
         }
     }
 
     @Test
     public void shouldNotThrowInvalidReverseRangeExceptionWithNegativeFromKey() {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister()) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(
+                this.getClass().getName() + "#shouldNotThrowInvalidReverseRangeExceptionWithNegativeFromKey")) {
+            logCaptureContext.setLatch(2);
+
             try (final KeyValueIterator<Integer, String> iterator = store.reverseRange(-1, 1)) {
                 assertFalse(iterator.hasNext());
             }
-
-            final List<String> messages = appender.getMessages();
-            assertThat(
-                messages,
-                hasItem("Returning empty iterator for fetch with invalid key range: from > to." +
-                    " This may be due to range arguments set in the wrong order, " +
-                    "or serdes that don't preserve ordering when lexicographically comparing the serialized bytes." +
-                    " Note that the built-in numerical serdes do not follow this for negative numbers")
+            
+            assertThat(logCaptureContext.getMessages(),
+                hasItem(containsString("WARN Returning empty iterator for fetch with invalid key range: from > to."))
             );
         }
     }
 
     @Test
     public void shouldNotThrowInvalidRangeExceptionWithFromLargerThanTo() {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister()) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(
+                this.getClass().getName() + "#shouldNotThrowInvalidRangeExceptionWithFromLargerThanTo")) {
+            logCaptureContext.setLatch(2);
+
             try (final KeyValueIterator<Integer, String> iterator = store.range(2, 1)) {
                 assertFalse(iterator.hasNext());
             }
-
-            final List<String> messages = appender.getMessages();
-            assertThat(
-                messages,
-                hasItem("Returning empty iterator for fetch with invalid key range: from > to." +
-                    " This may be due to range arguments set in the wrong order, " +
-                    "or serdes that don't preserve ordering when lexicographically comparing the serialized bytes." +
-                    " Note that the built-in numerical serdes do not follow this for negative numbers")
+            
+            assertThat(logCaptureContext.getMessages(),
+                hasItem(containsString("WARN Returning empty iterator for fetch with invalid key range: from > to."))
             );
         }
     }
 
     @Test
     public void shouldNotThrowInvalidReverseRangeExceptionWithFromLargerThanTo() {
-        try (final LogCaptureAppender appender = LogCaptureAppender.createAndRegister()) {
+        try (final LogCaptureContext logCaptureContext = LogCaptureContext.create(
+                this.getClass().getName() + "#shouldNotThrowInvalidReverseRangeExceptionWithFromLargerThanTo")) {
+            logCaptureContext.setLatch(2);
+
             try (final KeyValueIterator<Integer, String> iterator = store.reverseRange(2, 1)) {
                 assertFalse(iterator.hasNext());
             }
-
-            final List<String> messages = appender.getMessages();
-            assertThat(
-                messages,
-                hasItem("Returning empty iterator for fetch with invalid key range: from > to." +
-                    " This may be due to range arguments set in the wrong order, " +
-                    "or serdes that don't preserve ordering when lexicographically comparing the serialized bytes." +
-                    " Note that the built-in numerical serdes do not follow this for negative numbers")
+            
+            assertThat(logCaptureContext.getMessages(),
+                hasItem(containsString("WARN Returning empty iterator for fetch with invalid key range: from > to."))
             );
         }
     }
