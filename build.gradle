@@ -1325,11 +1325,20 @@ project(':tools') {
     compile libs.jacksonJaxrsJsonProvider
     compile libs.jerseyContainerServlet
     compile libs.jerseyHk2
+    compile libs.jerseyMediaJsonJackson
     compile libs.jaxbApi // Jersey dependency that was available in the JDK before Java 9
     compile libs.activation // Jersey dependency that was available in the JDK before Java 9
-    compile libs.jettyServer
-    compile libs.jettyServlet
-    compile libs.jettyServlets
+    compile (libs.jettyServer) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile (libs.jettyServlet) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile (libs.jettyServlets) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile libs.jakartaServletApi
+    compile libs.jsr311Api
 
     testCompile project(':clients')
     testCompile libs.junitJupiter
@@ -1920,7 +1929,7 @@ project(':connect:api') {
   dependencies {
     compile project(':clients')
     compile libs.slf4jApi
-    compile libs.jaxrsApi
+    compile libs.jakartaRsApi
 
     testCompile libs.junitJupiter
     testRuntime libs.slf4jlog4j
@@ -2027,7 +2036,6 @@ project(':connect:runtime') {
   archivesBaseName = "connect-runtime"
 
   dependencies {
-
     compile project(':connect:api')
     compile project(':clients')
     compile project(':tools')
@@ -2038,12 +2046,23 @@ project(':connect:runtime') {
     compile libs.jacksonJaxrsJsonProvider
     compile libs.jerseyContainerServlet
     compile libs.jerseyHk2
+    compile libs.jerseyMediaJsonJackson
     compile libs.jaxbApi // Jersey dependency that was available in the JDK before Java 9
     compile libs.activation // Jersey dependency that was available in the JDK before Java 9
-    compile libs.jettyServer
-    compile libs.jettyServlet
-    compile libs.jettyServlets
-    compile libs.jettyClient
+    compile (libs.jettyServer) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile (libs.jettyServlet) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile (libs.jettyServlets) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile (libs.jettyClient) {
+      exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile libs.jakartaServletApi
+    compile libs.jsr311Api
     compile(libs.reflections)
     compile(libs.mavenArtifact)
 
@@ -2170,6 +2189,7 @@ project(':connect:basic-auth-extension') {
   dependencies {
     compile project(':connect:api')
     compile libs.slf4jApi
+    compile libs.jakartaRsApi
 
     testCompile libs.bcpkix
     testCompile libs.easymock

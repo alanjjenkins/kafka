@@ -16,7 +16,6 @@
  */
 package org.apache.kafka.connect.runtime.rest;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.health.ConnectClusterDetails;
@@ -32,6 +31,8 @@ import org.apache.kafka.connect.runtime.rest.resources.ConnectorsResource;
 import org.apache.kafka.connect.runtime.rest.resources.LoggingResource;
 import org.apache.kafka.connect.runtime.rest.resources.RootResource;
 import org.apache.kafka.connect.runtime.rest.util.SSLUtils;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
@@ -54,8 +55,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.DispatcherType;
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -67,6 +66,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.apache.kafka.connect.runtime.WorkerConfig.ADMIN_LISTENERS_HTTPS_CONFIGS_PREFIX;
+
+import jakarta.servlet.DispatcherType;
+import jakarta.ws.rs.core.UriBuilder;
 
 /**
  * Embedded server for the REST API that provides the control plane for Kafka Connect workers.
@@ -171,7 +173,7 @@ public class RestServer {
         ServerConnector connector;
 
         if (PROTOCOL_HTTPS.equals(protocol)) {
-            SslContextFactory ssl;
+            SslContextFactory.Server ssl;
             if (isAdmin) {
                 ssl = SSLUtils.createServerSideSslContextFactory(config, ADMIN_LISTENERS_HTTPS_CONFIGS_PREFIX);
             } else {
