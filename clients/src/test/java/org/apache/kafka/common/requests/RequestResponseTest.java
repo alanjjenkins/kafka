@@ -187,6 +187,7 @@ import org.apache.kafka.common.protocol.ObjectSerializationCache;
 import org.apache.kafka.common.quota.ClientQuotaAlteration;
 import org.apache.kafka.common.quota.ClientQuotaEntity;
 import org.apache.kafka.common.quota.ClientQuotaFilter;
+import org.apache.kafka.common.record.CompressionConfig;
 import org.apache.kafka.common.record.CompressionType;
 import org.apache.kafka.common.record.MemoryRecords;
 import org.apache.kafka.common.record.RecordBatch;
@@ -1301,7 +1302,7 @@ public class RequestResponseTest {
 
     private FetchResponse createFetchResponse(int sessionId) {
         LinkedHashMap<TopicPartition, FetchResponseData.PartitionData> responseData = new LinkedHashMap<>();
-        MemoryRecords records = MemoryRecords.withRecords(CompressionType.NONE, new SimpleRecord("blah".getBytes()));
+        MemoryRecords records = MemoryRecords.withRecords(CompressionConfig.NONE, new SimpleRecord("blah".getBytes()));
         responseData.put(new TopicPartition("test", 0), new FetchResponseData.PartitionData()
                         .setPartitionIndex(0)
                         .setHighWatermark(1000000)
@@ -1319,7 +1320,7 @@ public class RequestResponseTest {
 
     private FetchResponse createFetchResponse(boolean includeAborted) {
         LinkedHashMap<TopicPartition, FetchResponseData.PartitionData> responseData = new LinkedHashMap<>();
-        MemoryRecords records = MemoryRecords.withRecords(CompressionType.NONE, new SimpleRecord("blah".getBytes()));
+        MemoryRecords records = MemoryRecords.withRecords(CompressionConfig.NONE, new SimpleRecord("blah".getBytes()));
         responseData.put(new TopicPartition("test", 0), new FetchResponseData.PartitionData()
                         .setPartitionIndex(0)
                         .setHighWatermark(1000000)
