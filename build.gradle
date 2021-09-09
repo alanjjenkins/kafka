@@ -1914,6 +1914,28 @@ project(':log4j-appender') {
 
 }
 
+project(':log4j2-appender') {
+  archivesBaseName = "kafka-log4j2-appender"
+
+  dependencies {
+    compile project(':clients')
+    compile libs.log4j2Api
+    compile libs.log4j2Core
+    compile libs.slf4jlog4j2
+
+    testCompile project(':clients').sourceSets.test.output
+    testCompile libs.hamcrest
+    testCompile libs.junitJupiterApi
+    testCompile libs.junitVintageEngine
+    testCompile libs.log4j2CoreTest
+  }
+
+  javadoc {
+    enabled = false
+  }
+
+}
+
 project(':connect:api') {
   archivesBaseName = "connect-api"
 
