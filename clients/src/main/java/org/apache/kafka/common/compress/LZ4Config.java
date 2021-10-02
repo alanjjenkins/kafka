@@ -34,9 +34,11 @@ public final class LZ4Config extends CompressionConfig {
     public static final int DEFAULT_BLOCK_SIZE = MIN_BLOCK_SIZE;
 
     private final int blockSize;
+    private final int level;
 
-    private LZ4Config(int blockSize) {
+    private LZ4Config(int blockSize, int level) {
         this.blockSize = blockSize;
+        this.level = level;
     }
 
     @Override
@@ -47,7 +49,7 @@ public final class LZ4Config extends CompressionConfig {
     @Override
     public OutputStream wrapForOutput(ByteBufferOutputStream buffer, byte messageVersion) {
         try {
-            return new KafkaLZ4BlockOutputStream(buffer, this.blockSize, false, messageVersion == MAGIC_VALUE_V0);
+            return new KafkaLZ4BlockOutputStream(buffer, this.blockSize, this.level, false, messageVersion == MAGIC_VALUE_V0);
         } catch (Throwable e) {
             throw new KafkaException(e);
         }
@@ -65,6 +67,7 @@ public final class LZ4Config extends CompressionConfig {
 
     public static class Builder extends CompressionConfig.Builder<LZ4Config> {
         private int blockSize = DEFAULT_BLOCK_SIZE;
+        private int level = KafkaLZ4BlockOutputStream.DEFAULT_COMPRESSION_LEVEL;
 
         public LZ4Config.Builder setBlockSize(int blockSize) {
             if (blockSize < MIN_BLOCK_SIZE || MAX_BLOCK_SIZE < blockSize) {
@@ -75,9 +78,18 @@ public final class LZ4Config extends CompressionConfig {
             return this;
         }
 
+        public Builder setLevel(int level) {
+            if (level < KafkaLZ4BlockOutputStream.MIN_COMPRESSION_LEVEL || KafkaLZ4BlockOutputStream.MAX_COMPRESSION_LEVEL < level) {
+                throw new IllegalArgumentException("lz4 doesn't support given compression level: " + level);
+            }
+
+            this.level = level;
+            return this;
+        }
+
         @Override
         public LZ4Config build() {
-            return new LZ4Config(this.blockSize);
+            return new LZ4Config(this.blockSize, this.level);
         }
     }
 }
