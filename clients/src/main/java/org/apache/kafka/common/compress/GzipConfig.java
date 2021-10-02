@@ -28,17 +28,19 @@ import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public final class GzipConfig extends CompressionConfig {
     public static final int MIN_BUFFER_SIZE = 512;
     public static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
 
     private final int bufferSize;
+    private final int level;
 
-    private GzipConfig(int bufferSize) {
+    private GzipConfig(int bufferSize, int level) {
         this.bufferSize = bufferSize;
+        this.level = level;
     }
 
     public CompressionType getType() {
@@ -51,7 +53,7 @@ public final class GzipConfig extends CompressionConfig {
             // Set input buffer (uncompressed) to 16 KB (none by default) and output buffer (compressed) to
             // bufferSize (8 KB, 0.5 KB by gzip default) to ensure reasonable performance in cases where the caller passes a small
             // number of bytes to write (potentially a single byte)
-            return new BufferedOutputStream(new GZIPOutputStream(buffer, this.bufferSize), 16 * 1024);
+            return new BufferedOutputStream(new GzipOutputStream(buffer, this.bufferSize, this.level), 16 * 1024);
         } catch (Exception e) {
             throw new KafkaException(e);
         }
@@ -72,6 +74,7 @@ public final class GzipConfig extends CompressionConfig {
 
     public static class Builder extends CompressionConfig.Builder<GzipConfig> {
         private int bufferSize = DEFAULT_BUFFER_SIZE;
+        private int level = Deflater.DEFAULT_COMPRESSION;
 
         public Builder setBufferSize(int bufferSize) {
             if (bufferSize < MIN_BUFFER_SIZE) {
@@ -82,9 +85,18 @@ public final class GzipConfig extends CompressionConfig {
             return this;
         }
 
+        public Builder setLevel(int level) {
+            if ((level < Deflater.BEST_SPEED || Deflater.BEST_COMPRESSION < level) && level != Deflater.DEFAULT_COMPRESSION) {
+                throw new IllegalArgumentException("gzip doesn't support given compression level: " + level);
+            }
+
+            this.level = level;
+            return this;
+        }
+
         @Override
         public GzipConfig build() {
-            return new GzipConfig(this.bufferSize);
+            return new GzipConfig(this.bufferSize, this.level);
         }
     }
 }
