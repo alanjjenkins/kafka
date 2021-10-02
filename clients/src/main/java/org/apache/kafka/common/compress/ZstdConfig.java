@@ -38,11 +38,22 @@ public final class ZstdConfig extends CompressionConfig {
     public static final int MIN_WINDOW_LOG = 10;
     public static final int MAX_WINDOW_LOG = 32;
     public static final int DEFAULT_WINDOW_LOG = 0;
+    /**
+     * Zstd supports compression levels from 1 up to ZSTD_maxCLevel(), which is currently 22. 0 is reserved for
+     * the default level that is controlled by the library (currently 3), and it also supports negative levels
+     * as an experimental feature; It is why MIN_COMPRESSION_LEVEL is not defined here.
+     *
+     * For details, please refer the official zstd manual: http://facebook.github.io/zstd/zstd_manual.html
+     */
+    public static final int MAX_COMPRESSION_LEVEL = 22;
+    public static final int DEFAULT_COMPRESSION_LEVEL = 0;
 
     private final int windowLog;
+    private final int level;
 
-    private ZstdConfig(int windowLog) {
+    private ZstdConfig(int windowLog, int level) {
         this.windowLog = windowLog;
+        this.level = level;
     }
 
     public CompressionType getType() {
@@ -52,11 +63,9 @@ public final class ZstdConfig extends CompressionConfig {
     @Override
     public OutputStream wrapForOutput(ByteBufferOutputStream bufferStream, byte messageVersion) {
         try {
-            ZstdOutputStreamNoFinalizer zstdOS = new ZstdOutputStreamNoFinalizer(bufferStream, RecyclingBufferPool.INSTANCE);
-            zstdOS.setLong(this.windowLog);
             // Set input buffer (uncompressed) to 16 KB (none by default) to ensure reasonable performance
             // in cases where the caller passes a small number of bytes to write (potentially a single byte).
-            return new BufferedOutputStream(zstdOS, 16 * 1024);
+            return new BufferedOutputStream(new ZstdOutputStreamNoFinalizer(bufferStream, RecyclingBufferPool.INSTANCE, this.level).setLong(this.windowLog), 16 * 1024);
         } catch (Throwable e) {
             throw new KafkaException(e);
         }
@@ -89,6 +98,7 @@ public final class ZstdConfig extends CompressionConfig {
 
     public static class Builder extends CompressionConfig.Builder<ZstdConfig> {
         private int windowLog = DEFAULT_WINDOW_LOG;
+        private int level = DEFAULT_COMPRESSION_LEVEL;
 
         public Builder setWindowLog(int windowLog) {
             if (!(windowLog == DEFAULT_WINDOW_LOG || (MIN_WINDOW_LOG <= windowLog && windowLog <= MAX_WINDOW_LOG))) {
@@ -99,9 +109,18 @@ public final class ZstdConfig extends CompressionConfig {
             return this;
         }
 
+        public Builder setLevel(int level) {
+            if (MAX_COMPRESSION_LEVEL < level) {
+                throw new IllegalArgumentException("zstd doesn't support given compression level: " + level);
+            }
+
+            this.level = level;
+            return this;
+        }
+
         @Override
         public ZstdConfig build() {
-            return new ZstdConfig(this.windowLog);
+            return new ZstdConfig(this.windowLog, this.level);
         }
     }
 }
