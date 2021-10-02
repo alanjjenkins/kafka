@@ -171,6 +171,10 @@ public class TopicConfig {
     public static final String COMPRESSION_GZIP_BUFFER_DOC = "The buffer size in which Gzip feeds input data into the Deflater. " +
         "The greater the buffer size is, the more data is compressed at once. Available values are: [512, 2147483647]. Default: 8192 (=8KB).";
 
+    public static final String COMPRESSION_GZIP_LEVEL_CONFIG = "compression.gzip.level";
+    public static final String COMPRESSION_GZIP_LEVEL_DOC = "The compression level which Gzip uses. The greater the level is, the better the compression ratio but slower speed. "
+        + "Available values are: [1, 9]. Default: -1 (use the codec default).";
+
     public static final String COMPRESSION_SNAPPY_BLOCK_CONFIG = "compression.snappy.block";
     public static final String COMPRESSION_SNAPPY_BLOCK_DOC = "The frame size which Snappy divides an uncompressed message. " +
         "The uncompressed content is read by this amount. Available values are: [1024, 2147483647]. Default: 32768 (=32KB).";
@@ -179,11 +183,21 @@ public class TopicConfig {
     public static final String COMPRESSION_LZ4_BLOCK_DOC = "The frame size which LZ4 divides an uncompressed message. " +
         "The uncompressed content is read by this amount. Available values are: 4 (=64 KB, default), 5 (=256KB), 6 (=1MB), 7 (=4MB).";
 
+    public static final String COMPRESSION_LZ4_LEVEL_CONFIG = "compression.lz4.level";
+    public static final String COMPRESSION_LZ4_LEVEL_DOC = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. "
+        + "Available values are: [1, 17]. Default: 9.";
+
     public static final String COMPRESSION_ZSTD_WINDOW_CONFIG = "compression.zstd.window";
     public static final String COMPRESSION_ZSTD_WINDOW_DOC = "The window size zstd uses. If 0 (default), zstd disables LDM (Long Distance Mode). " +
         "If set to a value in [10, 32], zstd enables LDM and compresses with a window whose size is 2^{compression.zstd.window} bytes. " +
         "(For Example, if set to 27 zstd uses 128MB window.) " +
         "Note: if set to greater than 27, some systems may fail to decompress the message due to lack of memory.";
+
+    public static final String COMPRESSION_ZSTD_LEVEL_CONFIG = "compression.zstd.level";
+    public static final String COMPRESSION_ZSTD_LEVEL_DOC = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. "
+        + "Available values are: [-131072~22]. Default: 0 (use the codec default, currently 3)."
+        + "<p>"
+        + "Note: negative level is an experimental feature.";
 
     public static final String PREALLOCATE_CONFIG = "preallocate";
     public static final String PREALLOCATE_DOC = "True if we should preallocate the file on disk when " +

@@ -22,7 +22,6 @@ import java.nio._
 import java.nio.channels._
 import java.nio.file.StandardOpenOption
 import java.util.{Properties, Random}
-
 import joptsimple._
 import kafka.log._
 import kafka.message._

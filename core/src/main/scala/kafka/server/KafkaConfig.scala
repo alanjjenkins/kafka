@@ -32,7 +32,7 @@ import kafka.utils.{CoreUtils, Logging}
 import kafka.utils.Implicits._
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.Reconfigurable
-import org.apache.kafka.common.compress.{GzipConfig, LZ4Config, SnappyConfig, ZstdConfig}
+import org.apache.kafka.common.compress.{GzipConfig, KafkaLZ4BlockOutputStream, LZ4Config, SnappyConfig, ZstdConfig}
 import org.apache.kafka.common.config.{AbstractConfig, ConfigDef, ConfigException, ConfigResource, SaslConfigs, SecurityConfig, SslClientAuth, SslConfigs, TopicConfig}
 import org.apache.kafka.common.config.ConfigDef.{ConfigKey, ValidList}
 import org.apache.kafka.common.config.internals.BrokerSecurityConfigs
@@ -49,6 +49,7 @@ import org.apache.kafka.server.authorizer.Authorizer
 import org.apache.kafka.server.log.remote.storage.RemoteLogManagerConfig
 import org.apache.zookeeper.client.ZKClientConfig
 
+import java.util.zip.Deflater
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters._
 import scala.collection.{Map, Seq}
@@ -228,9 +229,12 @@ object Defaults {
 
   val CompressionType = "producer"
   val CompressionGzipBuffer = GzipConfig.DEFAULT_BUFFER_SIZE
+  val CompressionGzipLevel = Deflater.DEFAULT_COMPRESSION
   val CompressionSnappyBlock = SnappyConfig.DEFAULT_BLOCK_SIZE
   val CompressionLZ4Block = LZ4Config.DEFAULT_BLOCK_SIZE
+  val CompressionLZ4Level = KafkaLZ4BlockOutputStream.DEFAULT_COMPRESSION_LEVEL
   val CompressionZstdWindow = ZstdConfig.DEFAULT_WINDOW_LOG
+  val CompressionZstdLevel = ZstdConfig.DEFAULT_COMPRESSION_LEVEL
 
   val MaxIdMapSnapshots = 2
   /** ********* Kafka Metrics Configuration ***********/
@@ -541,9 +545,12 @@ object KafkaConfig {
   val DeleteTopicEnableProp = "delete.topic.enable"
   val CompressionTypeProp = "compression.type"
   val CompressionGzipBufferProp = "compression.gzip.buffer"
+  val CompressionGzipLevelProp = "compression.gzip.level"
   val CompressionSnappyBlockProp = "compression.snappy.block"
   val CompressionLZ4BlockProp = "compression.lz4.block"
+  val CompressionLZ4LevelProp = "compression.lz4.level"
   val CompressionZstdWindowProp = "compression.zstd.window"
+  val CompressionZstdLevelProp = "compression.zstd.level"
 
   /** ********* Kafka Metrics Configuration ***********/
   val MetricSampleWindowMsProp = CommonClientConfigs.METRICS_SAMPLE_WINDOW_MS_CONFIG
@@ -950,15 +957,23 @@ object KafkaConfig {
     "'producer' which means retain the original compression codec set by the producer."
   val CompressionGzipBufferDoc = "The buffer size in which Gzip feeds input data into the Deflater. The greater the buffer size is, the more data " +
     " is compressed at once. Available values are: [512, 2147483647]. Default: 8192 (=8KB)."
+  val CompressionGzipLevelDoc = "The compression level which Gzip uses. The greater the level is, the better the compression ratio but slower speed. " +
+    "Available values are: [1, 9]. Default: -1 (use the codec default)."
   val CompressionSnappyBlockDoc = "The frame size which Snappy divides an uncompressed message. The uncompressed content is read by this " +
     "amount. Available values are: [1024, 2147483647]. Default: 32768 (=32KB)."
   val CompressionLZ4BlockDoc = "The frame size which LZ4 divides an uncompressed message. The uncompressed content is read by this amount. " +
     "Available values are: 4 (=64 KB, default), 5 (=256KB), 6 (=1MB), 7 (=4MB)."
+  val CompressionLZ4LevelDoc = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. " +
+    "Available values are: [1, 17]. Default: 9."
   val CompressionZstdWindowDoc = "The window size zstd uses. If 0 (default), zstd disables LDM (Long Distance Mode). If set to a value in " +
     "[10, 32], zstd enables LDM and compresses with a window whose size is 2^{compression.zstd.window} bytes. " +
     "(For Example, if set to 27 zstd uses 128MB window.)" +
     "<p>" +
     "Note: if set to greater than 27, some systems may fail to decompress the message due to lack of memory."
+  val CompressionZstdLevelDoc = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. " +
+    "Available values are: [-131072~22]. Default: 0 (use the codec default, currently 3)." +
+    "<p>" +
+    "Note: negative level is an experimental feature."
 
   /** ********* Kafka Metrics Configuration ***********/
   val MetricSampleWindowMsDoc = CommonClientConfigs.METRICS_SAMPLE_WINDOW_MS_DOC
@@ -1231,13 +1246,20 @@ object KafkaConfig {
       .define(DeleteTopicEnableProp, BOOLEAN, Defaults.DeleteTopicEnable, HIGH, DeleteTopicEnableDoc)
       .define(CompressionTypeProp, STRING, Defaults.CompressionType, HIGH, CompressionTypeDoc)
       .define(CompressionGzipBufferProp, INT, Defaults.CompressionGzipBuffer, atLeast(GzipConfig.MIN_BUFFER_SIZE), MEDIUM, CompressionGzipBufferDoc)
+      .define(CompressionGzipLevelProp, INT, Defaults.CompressionGzipLevel, ConfigDef.LambdaValidator.`with`((name: String, value: Any) => {
+        val intValue = value.asInstanceOf[Integer].intValue
+        if (!(intValue == Deflater.DEFAULT_COMPRESSION || (Deflater.BEST_SPEED <= intValue && intValue <= Deflater.BEST_SPEED))) throw new ConfigException(name, value, "must be 0 or in [10, 32]")
+      }, () => "The compression level gzip uses"), MEDIUM, CompressionGzipLevelDoc)
       .define(CompressionSnappyBlockProp, INT, Defaults.CompressionSnappyBlock, atLeast(SnappyConfig.MIN_BLOCK_SIZE), MEDIUM, CompressionSnappyBlockDoc)
       .define(CompressionLZ4BlockProp, INT, Defaults.CompressionLZ4Block, between(LZ4Config.MIN_BLOCK_SIZE, LZ4Config.MAX_BLOCK_SIZE), MEDIUM, CompressionLZ4BlockDoc)
+      .define(CompressionLZ4LevelProp, INT, Defaults.CompressionLZ4Level,
+        between(KafkaLZ4BlockOutputStream.MIN_COMPRESSION_LEVEL, KafkaLZ4BlockOutputStream.MAX_COMPRESSION_LEVEL), MEDIUM, CompressionLZ4LevelDoc)
       .define(CompressionZstdWindowProp, INT, Defaults.CompressionZstdWindow, ConfigDef.LambdaValidator.`with`((name: String, value: Any) => {
         val intValue = value.asInstanceOf[Integer].intValue
         if (!(intValue == ZstdConfig.DEFAULT_WINDOW_LOG || (ZstdConfig.MIN_WINDOW_LOG <= intValue && intValue <= ZstdConfig.MAX_WINDOW_LOG)))
           throw new ConfigException(name, value, "must be 0 or in [10, 32]")
       }, () => "The window size zstd uses"), MEDIUM, CompressionZstdWindowDoc)
+      .define(CompressionZstdLevelProp, INT, Defaults.CompressionZstdLevel, atMost(ZstdConfig.MAX_COMPRESSION_LEVEL), MEDIUM, CompressionZstdLevelDoc)
 
       /** ********* Transaction management configuration ***********/
       .define(TransactionalIdExpirationMsProp, INT, Defaults.TransactionalIdExpirationMs, atLeast(1), HIGH, TransactionalIdExpirationMsDoc)
@@ -1798,9 +1820,12 @@ class KafkaConfig(val props: java.util.Map[_, _], doLog: Boolean, dynamicConfigO
   val deleteTopicEnable = getBoolean(KafkaConfig.DeleteTopicEnableProp)
   def compressionType = getString(KafkaConfig.CompressionTypeProp)
   def compressionGzipBuffer = getInt(KafkaConfig.CompressionGzipBufferProp)
+  def compressionGzipLevel = getInt(KafkaConfig.CompressionGzipLevelProp)
   def compressionSnappyBlock = getInt(KafkaConfig.CompressionSnappyBlockProp)
   def compressionLZ4Block = getInt(KafkaConfig.CompressionLZ4BlockProp)
+  def compressionLZ4Level = getInt(KafkaConfig.CompressionLZ4LevelProp)
   def compressionZstdWindow = getInt(KafkaConfig.CompressionZstdWindowProp)
+  def compressionZstdLevel = getInt(KafkaConfig.CompressionZstdLevelProp)
 
   /** ********* Raft Quorum Configuration *********/
   val quorumVoters = getList(RaftConfig.QUORUM_VOTERS_CONFIG)

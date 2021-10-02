@@ -889,6 +889,15 @@ public class ConfigDef {
         }
 
         /**
+         * A numeric range that checks only the upper bound (inclusive)
+         *
+         * @param max The maximum acceptable value
+         */
+        public static Range atMost(Number max) {
+            return new Range(null, max);
+        }
+
+        /**
          * A numeric range that checks both the upper (inclusive) and lower bound
          */
         public static Range between(Number min, Number max) {

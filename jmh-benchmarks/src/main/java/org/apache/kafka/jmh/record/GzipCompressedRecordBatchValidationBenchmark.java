@@ -16,8 +16,11 @@ public class GzipCompressedRecordBatchValidationBenchmark extends AbstractCompre
     @Param(value = {"512", "8192", "32768"})
     private int bufferSize = 8192;
 
+    @Param(value = {"1", "5", "9"})
+    private int level = 5;
+
     @Override
     CompressionConfig compressionConfig() {
-        return CompressionConfig.gzip().setBufferSize(bufferSize).build();
+        return CompressionConfig.gzip().setBufferSize(bufferSize).setLevel(level).build();
     }
 }

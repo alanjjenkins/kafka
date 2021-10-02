@@ -16,8 +16,11 @@ public class ZstdCompressedRecordBatchValidationBenchmark extends AbstractCompre
     @Param(value = {"0", "10", "16", "22"})
     private int windowLog = 0;
 
+    @Param(value = {"1", "6", "12", "17", "22"})
+    private int level = 3;
+
     @Override
     CompressionConfig compressionConfig() {
-        return CompressionConfig.zstd().setWindowLog(this.windowLog).build();
+        return CompressionConfig.zstd().setWindowLog(this.windowLog).setLevel(level).build();
     }
 }

@@ -20,6 +20,7 @@ import org.apache.kafka.clients.ClientDnsLookup;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import org.apache.kafka.common.compress.GzipConfig;
+import org.apache.kafka.common.compress.KafkaLZ4BlockOutputStream;
 import org.apache.kafka.common.compress.LZ4Config;
 import org.apache.kafka.common.compress.SnappyConfig;
 import org.apache.kafka.common.compress.ZstdConfig;
@@ -40,8 +41,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.Deflater;
 
 import static org.apache.kafka.common.config.ConfigDef.Range.atLeast;
+import static org.apache.kafka.common.config.ConfigDef.Range.atMost;
 import static org.apache.kafka.common.config.ConfigDef.Range.between;
 import static org.apache.kafka.common.config.ConfigDef.ValidString.in;
 
@@ -193,6 +196,10 @@ public class ProducerConfig extends AbstractConfig {
     public static final String COMPRESSION_GZIP_BUFFER_CONFIG = "compression.gzip.buffer";
     private static final String COMPRESSION_GZIP_BUFFER_DOC = "The buffer size in which Gzip feeds input data into the Deflater. The greater the buffer size is, the more data is compressed at once."
                                                             + "Available values are: [512, 2147483647]. Default: 8192 (=8KB).";
+    /** <code>compression.gzip.level</code> */
+    public static final String COMPRESSION_GZIP_LEVEL_CONFIG = "compression.gzip.level";
+    private static final String COMPRESSION_GZIP_LEVEL_DOC = "The compression level which Gzip uses. The greater the level is, the better the compression ratio but slower speed. "
+                                                            + "Available values are: [1, 9]. Default: -1 (use the codec default).";
 
     /** <code>compression.snappy.block</code> */
     public static final String COMPRESSION_SNAPPY_BLOCK_CONFIG = "compression.snappy.block";
@@ -203,6 +210,10 @@ public class ProducerConfig extends AbstractConfig {
     public static final String COMPRESSION_LZ4_BLOCK_CONFIG = "compression.lz4.block";
     private static final String COMPRESSION_LZ4_BLOCK_DOC = "The frame size which LZ4 divides an uncompressed message. The uncompressed content is read by this amount. "
                                                             + "Available values are: 4 (=64 KB, default), 5 (=256KB), 6 (=1MB), 7 (=4MB).";
+    /** <code>compression.level</code> */
+    public static final String COMPRESSION_LZ4_LEVEL_CONFIG = "compression.lz4.level";
+    private static final String COMPRESSION_LZ4_LEVEL_DOC = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. "
+                                                            + "Available values are: [1, 17]. Default: 9.";
 
     /** <code>compression.zstd.window</code> */
     public static final String COMPRESSION_ZSTD_WINDOW_CONFIG = "compression.zstd.window";
@@ -211,6 +222,12 @@ public class ProducerConfig extends AbstractConfig {
                                                               + "(For Example, if set to 27 zstd uses 128MB window.)"
                                                               + "<p>"
                                                               + "Note: if set to greater than 27, some systems may fail to decompress the message due to lack of memory.";
+    /** <code>compression.level</code> */
+    public static final String COMPRESSION_ZSTD_LEVEL_CONFIG = "compression.zstd.level";
+    private static final String COMPRESSION_ZSTD_LEVEL_DOC = "The compression level which LZ4 uses. The greater the level is, the better the compression ratio but slower speed. "
+                                                            + "Available values are: [-131072~22]. Default: 0 (use the codec default, currently 3)."
+                                                            + "<p>"
+                                                            + "Note: negative level is an experimental feature.";
 
     /** <code>metrics.sample.window.ms</code> */
     public static final String METRICS_SAMPLE_WINDOW_MS_CONFIG = CommonClientConfigs.METRICS_SAMPLE_WINDOW_MS_CONFIG;
@@ -319,8 +336,19 @@ public class ProducerConfig extends AbstractConfig {
                                         ACKS_DOC)
                                 .define(COMPRESSION_TYPE_CONFIG, Type.STRING, "none", Importance.HIGH, COMPRESSION_TYPE_DOC)
                                 .define(COMPRESSION_GZIP_BUFFER_CONFIG, Type.INT, GzipConfig.DEFAULT_BUFFER_SIZE, atLeast(GzipConfig.MIN_BUFFER_SIZE), Importance.MEDIUM, COMPRESSION_GZIP_BUFFER_DOC)
+                                .define(COMPRESSION_GZIP_LEVEL_CONFIG, Type.INT, Deflater.DEFAULT_COMPRESSION, ConfigDef.LambdaValidator.with(
+                                    (name, value) -> {
+                                        int intValue = ((Integer) value).intValue();
+                                        if (!(intValue == Deflater.DEFAULT_COMPRESSION || (Deflater.BEST_SPEED <= intValue && intValue <= Deflater.BEST_COMPRESSION))) {
+                                            throw new ConfigException(name, value, "must be -1 or in [1, 9]");
+                                        }
+                                    },
+                                    () -> "The compression level gzip uses"
+                                ), Importance.MEDIUM, COMPRESSION_GZIP_LEVEL_DOC)
                                 .define(COMPRESSION_SNAPPY_BLOCK_CONFIG, Type.INT, SnappyConfig.DEFAULT_BLOCK_SIZE, atLeast(SnappyConfig.MIN_BLOCK_SIZE), Importance.MEDIUM, COMPRESSION_SNAPPY_BLOCK_DOC)
                                 .define(COMPRESSION_LZ4_BLOCK_CONFIG, Type.INT, LZ4Config.DEFAULT_BLOCK_SIZE, between(LZ4Config.MIN_BLOCK_SIZE, LZ4Config.MAX_BLOCK_SIZE), Importance.MEDIUM, COMPRESSION_LZ4_BLOCK_DOC)
+                                .define(COMPRESSION_LZ4_LEVEL_CONFIG, Type.INT, KafkaLZ4BlockOutputStream.DEFAULT_COMPRESSION_LEVEL,
+                                    between(KafkaLZ4BlockOutputStream.MIN_COMPRESSION_LEVEL, KafkaLZ4BlockOutputStream.MAX_COMPRESSION_LEVEL), Importance.MEDIUM, COMPRESSION_LZ4_LEVEL_DOC)
                                 .define(COMPRESSION_ZSTD_WINDOW_CONFIG, Type.INT, ZstdConfig.DEFAULT_WINDOW_LOG, ConfigDef.LambdaValidator.with(
                                     (name, value) -> {
                                         int intValue = ((Integer) value).intValue();
@@ -330,6 +358,7 @@ public class ProducerConfig extends AbstractConfig {
                                     },
                                     () -> "The window size zstd uses"
                                 ), Importance.MEDIUM, COMPRESSION_ZSTD_WINDOW_DOC)
+                                .define(COMPRESSION_ZSTD_LEVEL_CONFIG, Type.INT, ZstdConfig.DEFAULT_COMPRESSION_LEVEL, atMost(ZstdConfig.MAX_COMPRESSION_LEVEL), Importance.MEDIUM, COMPRESSION_ZSTD_LEVEL_DOC)
                                 .define(BATCH_SIZE_CONFIG, Type.INT, 16384, atLeast(0), Importance.MEDIUM, BATCH_SIZE_DOC)
                                 .define(LINGER_MS_CONFIG, Type.LONG, 0, atLeast(0), Importance.MEDIUM, LINGER_MS_DOC)
                                 .define(DELIVERY_TIMEOUT_MS_CONFIG, Type.INT, 120 * 1000, atLeast(0), Importance.MEDIUM, DELIVERY_TIMEOUT_MS_DOC)
@@ -548,6 +577,7 @@ public class ProducerConfig extends AbstractConfig {
             case GZIP:
                 return CompressionConfig.gzip()
                     .setBufferSize(getInt(ProducerConfig.COMPRESSION_GZIP_BUFFER_CONFIG))
+                    .setLevel(getInt(ProducerConfig.COMPRESSION_GZIP_LEVEL_CONFIG))
                     .build();
             case SNAPPY:
                 return CompressionConfig.snappy()
@@ -556,10 +586,12 @@ public class ProducerConfig extends AbstractConfig {
             case LZ4:
                 return CompressionConfig.lz4()
                     .setBlockSize(getInt(ProducerConfig.COMPRESSION_LZ4_BLOCK_CONFIG))
+                    .setLevel(getInt(ProducerConfig.COMPRESSION_LZ4_LEVEL_CONFIG))
                     .build();
             case ZSTD:
                 return CompressionConfig.zstd()
                     .setWindowLog(getInt(ProducerConfig.COMPRESSION_ZSTD_WINDOW_CONFIG))
+                    .setLevel(getInt(ProducerConfig.COMPRESSION_ZSTD_LEVEL_CONFIG))
                     .build();
             default:
                 throw new IllegalArgumentException("Unknown compression type: " + compressionType.name);

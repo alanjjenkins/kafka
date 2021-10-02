@@ -719,13 +719,16 @@ class KafkaConfigTest {
         case KafkaConfig.NumQuotaSamplesProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "0")
         case KafkaConfig.QuotaWindowSizeSecondsProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "0")
         case KafkaConfig.DeleteTopicEnableProp => assertPropertyInvalid(baseProperties, name, "not_a_boolean", "0")
+        case KafkaConfig.CompressionGzipLevelProp => assertPropertyInvalid(baseProperties, name, "not_a_number")
+        case KafkaConfig.CompressionLZ4LevelProp => assertPropertyInvalid(baseProperties, name, "not_a_number")
+        case KafkaConfig.CompressionZstdLevelProp => assertPropertyInvalid(baseProperties, name, "not_a_number")
 
         case KafkaConfig.MetricNumSamplesProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "-1", "0")
         case KafkaConfig.MetricSampleWindowMsProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "-1", "0")
         case KafkaConfig.MetricReporterClassesProp => // ignore string
         case KafkaConfig.MetricRecordingLevelProp => // ignore string
         case KafkaConfig.RackProp => // ignore string
-        //SSL Configs
+        // SSL Configs
         case KafkaConfig.PrincipalBuilderClassProp =>
         case KafkaConfig.ConnectionsMaxReauthMsProp =>
         case KafkaConfig.SslProtocolProp => // ignore string
@@ -787,7 +790,7 @@ class KafkaConfigTest {
         case KafkaConfig.DelegationTokenExpiryTimeMsProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "0")
         case KafkaConfig.DelegationTokenExpiryCheckIntervalMsProp => assertPropertyInvalid(baseProperties, name, "not_a_number", "0")
 
-        //Kafka Yammer metrics reporter configs
+        // Kafka Yammer metrics reporter configs
         case KafkaConfig.KafkaMetricsReporterClassesProp => // ignore
         case KafkaConfig.KafkaMetricsPollingIntervalSecondsProp => //ignore
 
@@ -857,12 +860,18 @@ class KafkaConfigTest {
           assertDynamic(kafkaConfigProp, "lz4", () => config.compressionType)
         case LogConfig.CompressionGzipBufferProp =>
           assertDynamic(kafkaConfigProp, 512 + 1, () => config.compressionGzipBuffer)
+        case LogConfig.CompressionGzipLevelProp =>
+          assertDynamic(kafkaConfigProp, 0 + 1, () => config.compressionGzipLevel)
         case LogConfig.CompressionSnappyBlockProp =>
           assertDynamic(kafkaConfigProp, 32768 + 1, () => config.compressionSnappyBlock)
         case LogConfig.CompressionLZ4BlockProp =>
           assertDynamic(kafkaConfigProp, 4 + 1, () => config.compressionLZ4Block)
+        case LogConfig.CompressionLZ4LevelProp =>
+          assertDynamic(kafkaConfigProp, 9 + 1, () => config.compressionLZ4Level)
         case LogConfig.CompressionZstdWindowProp =>
           assertDynamic(kafkaConfigProp, 10, () => config.compressionZstdWindow)
+        case LogConfig.CompressionZstdLevelProp =>
+          assertDynamic(kafkaConfigProp, 3 + 1, () => config.compressionZstdLevel)
         case LogConfig.SegmentBytesProp =>
           assertDynamic(kafkaConfigProp, 10000, () => config.logSegmentBytes)
         case LogConfig.SegmentMsProp =>

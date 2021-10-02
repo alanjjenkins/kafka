@@ -81,7 +81,7 @@ class LogConfigTest {
     LogConfig.configNames.foreach(name => name match {
       case LogConfig.UncleanLeaderElectionEnableProp => assertPropertyInvalid(name, "not a boolean")
       case LogConfig.RetentionBytesProp => assertPropertyInvalid(name, "not_a_number")
-      case LogConfig.RetentionMsProp => assertPropertyInvalid(name, "not_a_number" )
+      case LogConfig.RetentionMsProp => assertPropertyInvalid(name, "not_a_number")
       case LogConfig.CleanupPolicyProp => assertPropertyInvalid(name, "true", "foobar")
       case LogConfig.MinCleanableDirtyRatioProp => assertPropertyInvalid(name, "not_a_number", "-0.1", "1.2")
       case LogConfig.MinInSyncReplicasProp => assertPropertyInvalid(name, "not_a_number", "0", "-1")
@@ -89,6 +89,9 @@ class LogConfigTest {
       case LogConfig.RemoteLogStorageEnableProp => assertPropertyInvalid(name, "not_a_boolean")
       case LogConfig.LocalLogRetentionMsProp => assertPropertyInvalid(name, "not_a_number", "-3")
       case LogConfig.LocalLogRetentionBytesProp => assertPropertyInvalid(name, "not_a_number", "-3")
+      case LogConfig.CompressionGzipLevelProp => assertPropertyInvalid(name, "not_a_number")
+      case LogConfig.CompressionLZ4LevelProp => assertPropertyInvalid(name, "not_a_number")
+      case LogConfig.CompressionZstdLevelProp => assertPropertyInvalid(name, "not_a_number")
 
       case _ => assertPropertyInvalid(name, "not_a_number", "-1")
     })

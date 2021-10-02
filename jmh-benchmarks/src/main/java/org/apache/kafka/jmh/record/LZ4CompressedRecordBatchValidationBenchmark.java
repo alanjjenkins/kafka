@@ -15,8 +15,12 @@ import org.openjdk.jmh.annotations.Warmup;
 public class LZ4CompressedRecordBatchValidationBenchmark extends AbstractCompressedRecordBatchValidationBenchmark {
     @Param(value = {"4", "5", "6", "7"})
     private int blockSize = 4;
+
+    @Param(value = {"1", "5", "9", "13", "17"})
+    private int level = 9;
+
     @Override
     CompressionConfig compressionConfig() {
-        return CompressionConfig.lz4().setBlockSize(this.blockSize).build();
+        return CompressionConfig.lz4().setBlockSize(this.blockSize).setLevel(level).build();
     }
 }
