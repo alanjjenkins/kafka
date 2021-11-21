@@ -1412,17 +1412,17 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Message in rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec,topic=([-.\w]+)</td>
-        <td>Number of incoming messages per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Byte in rate from clients</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec,topic=([-.\w]+)</td>
-        <td>Number of incoming bytes per topic, from clients.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Byte in rate from other brokers</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=ReplicationBytesInPerSec,topic=([-.\w]+)</td>
-        <td>Number of incoming bytes per topic, from other brokers.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Controller Request rate from Broker</td>
@@ -1450,12 +1450,12 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Produce request rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=TotalProduceRequestsPerSec,topic=([-.\w]+)</td>
-        <td>Number of produce requests per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Fetch request rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=TotalFetchRequestsPerSec,topic=([-.\w]+)</td>
-        <td>Number of fetch requests per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Error rate</td>
@@ -1466,12 +1466,12 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Failed produce request rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec,topic=([-.\w]+)</td>
-        <td>Number of failed produce requests per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Failed fetch request rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec,topic=([-.\w]+)</td>
-        <td>Number of failed fetch requests per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Request size in bytes</td>
@@ -1491,7 +1491,7 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Message conversion rate</td>
         <td>kafka.server:type=BrokerTopicMetrics,name={Produce|Fetch}MessageConversionsPerSec,topic=([-.\w]+)</td>
-        <td>Number of records which required message format conversion, per topic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Request Queue Size</td>
@@ -1501,12 +1501,12 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Byte out rate to clients</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec,topic=([-.\w]+)</td>
-        <td>Number of outgoing bytes per topic, to clients.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Byte out rate to other brokers</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=ReplicationBytesOutPerSec,topic=([-.\w]+)</td>
-        <td>Number of outgoing bytes per topic, to other brokers.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Rejected byte rate</td>
@@ -1514,24 +1514,24 @@ $ bin/kafka-acls.sh \
         <td>Rejected byte out rate per topic, due to the record batch size is greater than max.message.bytes configuration.</td>
       </tr>
       <tr>
-        <td>Message validation failure rate (compacted topic, no key)</td>
+        <td>Message validation failure rate due to no key specified for compacted topic</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=NoKeyCompactedTopicRecordsPerSec,topic=([-.\w]+)</td>
-        <td>Message validation failure per topic, due to no key specified for compacted topic.</td>
+        <td></td>
       </tr>
       <tr>
-        <td>Message validation failure rate (invalid magic number)</td>
+        <td>Message validation failure rate due to invalid magic number</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=InvalidMagicNumberRecordsPerSec,topic=([-.\w]+)</td>
-        <td>Message validation failure per topic, due to invalid magic number.</td>
+        <td></td>
       </tr>
       <tr>
-        <td>Message validation failure rate (incorrect crc checksum)</td>
+        <td>Message validation failure rate due to incorrect crc checksum</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=InvalidMessageCrcRecordsPerSec,topic=([-.\w]+)</td>
-        <td>Message validation failure per topic, due to incorrect crc checksum.</td>
+        <td></td>
       </tr>
       <tr>
-        <td>Message validation failure rate (non-continuous offset or sequence number in batch)</td>
+        <td>Message validation failure rate due to non-continuous offset or sequence number in batch</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=InvalidOffsetOrSequenceRecordsPerSec,topic=([-.\w]+)</td>
-        <td>Message validation failure per topic, due to non-continuous offset or sequence number in batch.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Log flush rate and time</td>
@@ -1775,12 +1775,12 @@ $ bin/kafka-acls.sh \
       <tr>
         <td>Outgoing byte rate of reassignment traffic</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=ReassignmentBytesOutPerSec,topic=([-.\w]+)</td>
-        <td>Number of outgoing bytes per topic, due to reassignment traffic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Incoming byte rate of reassignment traffic</td>
         <td>kafka.server:type=BrokerTopicMetrics,name=ReassignmentBytesInPerSec,topic=([-.\w]+)</td>
-        <td>Number of incoming bytes per topic, due to reassignment traffic.</td>
+        <td></td>
       </tr>
       <tr>
         <td>Size of a partition on disk (in bytes)</td>
