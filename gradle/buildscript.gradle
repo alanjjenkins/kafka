@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-repositories {
-  repositories {
-    // For license plugin.
-    maven {
-      url 'https://dl.bintray.com/content/netflixoss/external-gradle-plugins/'
-    }
-  }
-}
+// repositories {
+//   repositories {
+//     // For license plugin.
+//     maven {
+//       url 'https://dl.bintray.com/content/netflixoss/external-gradle-plugins/'
+//     }
+//   }
+// }

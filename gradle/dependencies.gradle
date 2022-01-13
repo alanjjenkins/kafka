@@ -159,6 +159,7 @@ libs += [
   jmhGeneratorAnnProcess: "org.openjdk.jmh:jmh-generator-annprocess:$versions.jmh",
   joptSimple: "net.sf.jopt-simple:jopt-simple:$versions.jopt",
   junitJupiter: "org.junit.jupiter:junit-jupiter:$versions.junit",
+  mockitoJunitJupiter: "org.mockito:mockito-junit-jupiter:$versions.mockito",
   junitJupiterApi: "org.junit.jupiter:junit-jupiter-api:$versions.junit",
   junitVintageEngine: "org.junit.vintage:junit-vintage-engine:$versions.junit",
   hamcrest: "org.hamcrest:hamcrest:$versions.hamcrest",

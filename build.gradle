@@ -1359,58 +1359,58 @@ project(':tools') {
   }
 }
 
-project(':trogdor') {
-  archivesBaseName = "trogdor"
-
-  dependencies {
-    implementation project(':clients')
-    implementation libs.argparse4j
-    implementation libs.jacksonDatabind
-    implementation libs.jacksonJDK8Datatypes
-    implementation libs.slf4jApi
-    implementation libs.log4j2Api
-    implementation libs.log4j1_2Api
-    implementation (libs.log4j2Core) {
-      exclude(group: 'org.apache.kafka', module: 'kafka-clients')
-    }
-
-    implementation libs.jacksonJaxrsJsonProvider
-    implementation libs.jerseyContainerServlet
-    implementation libs.jerseyHk2
-    implementation libs.jaxbApi // Jersey dependency that was available in the JDK before Java 9
-    implementation libs.activation // Jersey dependency that was available in the JDK before Java 9
-    implementation libs.jettyServer
-    implementation libs.jettyServlet
-    implementation libs.jettyServlets
-
-    testImplementation project(':clients')
-    testImplementation libs.junitJupiter
-    testImplementation project(':clients').sourceSets.test.output
-    testImplementation libs.mockitoInline // supports mocking static methods, final classes, etc.
-
-    testRuntimeOnly libs.slf4jlog4j2
-  }
-
-  javadoc {
-    enabled = false
-  }
-
-  tasks.create(name: "copyDependantLibs", type: Copy) {
-    from (configurations.testRuntime) {
-      include('log4j-slf4j-impl*')
-      include('log4j-[api|core]*jar')
-    }
-    from (configurations.runtime) {
-      exclude('kafka-clients*')
-    }
-    into "$buildDir/dependant-libs-${versions.scala}"
-    duplicatesStrategy 'exclude'
-  }
-
-  jar {
-    dependsOn 'copyDependantLibs'
-  }
-}
+// project(':trogdor') {
+//   archivesBaseName = "trogdor"
+//
+//   dependencies {
+//     implementation project(':clients')
+//     implementation libs.argparse4j
+//     implementation libs.jacksonDatabind
+//     implementation libs.jacksonJDK8Datatypes
+//     implementation libs.slf4jApi
+//     implementation libs.log4j2Api
+//     implementation libs.log4j1_2Api
+//     implementation (libs.log4j2Core) {
+//       exclude(group: 'org.apache.kafka', module: 'kafka-clients')
+//     }
+//
+//     implementation libs.jacksonJaxrsJsonProvider
+//     implementation libs.jerseyContainerServlet
+//     implementation libs.jerseyHk2
+//     implementation libs.jaxbApi // Jersey dependency that was available in the JDK before Java 9
+//     implementation libs.activation // Jersey dependency that was available in the JDK before Java 9
+//     implementation libs.jettyServer
+//     implementation libs.jettyServlet
+//     implementation libs.jettyServlets
+//
+//     testImplementation project(':clients')
+//     testImplementation libs.junitJupiter
+//     testImplementation project(':clients').sourceSets.test.output
+//     testImplementation libs.mockitoInline // supports mocking static methods, final classes, etc.
+//
+//     testRuntimeOnly libs.slf4jlog4j2
+//   }
+//
+//   javadoc {
+//     enabled = false
+//   }
+//
+//   tasks.create(name: "copyDependantLibs", type: Copy) {
+//     from (configurations.testRuntime) {
+//       include('log4j-slf4j-impl*')
+//       include('log4j-[api|core]*jar')
+//     }
+//     from (configurations.runtime) {
+//       exclude('kafka-clients*')
+//     }
+//     into "$buildDir/dependant-libs-${versions.scala}"
+//     duplicatesStrategy 'exclude'
+//   }
+//
+//   jar {
+//     dependsOn 'copyDependantLibs'
+//   }
+// }
 
 project(':shell') {
   archivesBaseName = "kafka-shell"
